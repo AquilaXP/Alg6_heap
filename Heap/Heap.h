@@ -45,6 +45,27 @@ void DrownIter( IArray< Ty >& arr, size_t idx, Comp comp = std::less< Ty >() )
     }
 }
 
+template< class Ty, class Comp >
+void ComeUp( IArray< Ty >& arr, const Ty& v, size_t& idx, Comp comp = std::less< Ty >() )
+{
+    // Сравниваем с родителем, если не удовлетворяет условию меняем местами и т.д.
+    // Поднимаем вверх, элемент хочет всплыть
+    while( idx > 0 )
+    {
+        size_t parent = ( idx - 1 ) / 2;
+        if( comp( arr.get( idx ), arr.get( parent ) ) )
+        {
+            std::swap( arr.get( idx ), arr.get( parent ) );
+            idx = parent;
+        }
+        else
+        {
+            // стоит где нужно
+            break;
+        }
+    }
+}
+
 template< class Ty, class D, class Comp >
 void BuildHeap( IArray< Ty >& arr, D drown, Comp comp = std::less< Ty >() )
 {
@@ -63,8 +84,13 @@ void RemoveElement( IArray< Ty >& arr, size_t idx, Comp comp = std::less< Ty >()
 {
     std::swap( arr.get( idx ), arr.get( arr.size() - 1 ) );
     arr.remove( arr.size() - 1 );
-    // "утапливаем" элемент
-    Drown( arr, idx, comp );
+
+    // "всплывает" элемент, если он не удовлетворяет условиню
+    size_t p = idx;
+    ComeUp( arr, arr.get( idx ), p, comp );
+    // Элемент не изменил своего положения,"топим"!
+    if( p == idx )
+        Drown( arr, p, comp );
 }
 
 template< class Ty, class Comp >
@@ -74,20 +100,5 @@ void AddElement( IArray< Ty >& arr, const Ty& v, Comp comp = std::less< Ty >() )
     arr.add( v );
 
     size_t p = arr.size() - 1;
-    // Сравниваем с родителем, если не удовлетворяет условию меняем местами и т.д.
-    // Поднимаем вверх, элемент хочет всплыть
-    while( p > 0 )
-    {
-        size_t pp = (p - 1) / 2;
-        if( comp( arr.get(p), arr.get(pp) ) )
-        {
-            std::swap( arr.get(p), arr.get(pp) );
-            p = pp;
-        }
-        else
-        {
-            // стоит где нужно
-            break;
-        }
-    }
+    ComeUp( arr, v, p, comp );
 }
